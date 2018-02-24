@@ -1,13 +1,17 @@
 package com.sequencing.sample;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Looper;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -50,6 +54,8 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
     private AsyncTaskChain88 asyncTaskChain88;
     private AsyncTaskBulkChains asyncTaskBulkChains;
 
+    private static final int CAMERA_REQUEST = 1888;
+    private ImageView imageView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,6 +78,24 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
         tvResult = (TextView) findViewById(R.id.tvResult);
 
         fileSelectHandler = new SQUIFileSelectHandler(this);
+
+        imageView = (ImageView) this.findViewById(R.id.imageView);
+        Button takePicture = (Button) this.findViewById(R.id.takePictureBtn);
+
+        takePicture.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                startActivityForResult(cameraIntent, CAMERA_REQUEST);
+            }
+        });
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        if(requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK){
+            Bitmap photo = (Bitmap) data.getExtras().get("data");
+            imageView.setImageBitmap(photo);
+        }
     }
 
     @Override

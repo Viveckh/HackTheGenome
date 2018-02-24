@@ -41,7 +41,7 @@ public class LoginActivity extends AppCompatActivity implements ISQAuthCallback{
     @Override
     public void onAuthentication(Token token) {
         Log.i(TAG, "Authenticated");
-        Toast.makeText(getApplicationContext(), "You has been authenticated", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), "You have been authenticated", Toast.LENGTH_SHORT).show();
 
         /*
         Intent intent = new Intent(getApplicationContext(), SQApiActivity.class);
