@@ -155,7 +155,7 @@
         android:id="@+id/caption_label"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Caption"
+        android:text="Caption (Long-press to copy)"
         android:visibility="gone"/>
 
     <TextView

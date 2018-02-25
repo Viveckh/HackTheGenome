@@ -2,6 +2,8 @@ package com.sequencing.sample;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
@@ -186,6 +188,18 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
         captionLabel= (TextView) this.findViewById(R.id.caption_label);
         photoLabel = (TextView) this.findViewById(R.id.photo_label);
         captionOptionLabel = (TextView) this.findViewById(R.id.caption_option);
+
+        captionView.setOnLongClickListener(new View.OnLongClickListener() {
+            public boolean onLongClick(View view) {
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText("vivid", captionView.getText());
+                clipboard.setPrimaryClip(clip);
+                Toast.makeText(getApplicationContext(), "Copied caption to clipboard", Toast.LENGTH_LONG).show();
+                System.out.println(clipboard.getPrimaryClip().toString());
+                return true;
+
+            }
+        });
 
         ActivityCompat.requestPermissions(TestAppChainsActivity.this,
                 new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
