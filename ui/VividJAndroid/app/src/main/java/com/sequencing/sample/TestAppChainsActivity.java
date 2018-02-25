@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Looper;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
@@ -24,6 +25,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.sequencing.androidoauth.core.OAuth2Parameters;
 import com.sequencing.appchains.AndroidAppChainsImpl;
 import com.sequencing.appchains.AppChains;
@@ -76,6 +82,8 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
     private String capturedPhotoType = "image/*";
     private String capturedPhotoFilename = "capturedPhoto.png";
     private String capturedPhotoPath = ""; //will get updated with stored path
+
+    private StorageReference mStorageRef;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -126,6 +134,8 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
         ActivityCompat.requestPermissions(TestAppChainsActivity.this,
                 new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                 2);
+
+        mStorageRef = FirebaseStorage.getInstance().getReference();
     }
 
     @Override
@@ -197,9 +207,33 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
             photo = Bitmap.createScaledBitmap(photo, imageView.getWidth(),imageView.getHeight(),true);
             //Bitmap photo = (Bitmap) data.getExtras().get("data");
             imageView.setImageBitmap(photo);
+            uploadImage();
             //saveCapturedImage(photo);
 
         }
+    }
+
+    private void uploadImage() {
+
+        Uri file = Uri.fromFile(new File(capturedPhotoPath));
+        StorageReference imageRef = mStorageRef.child("images/" + capturedPhotoFilename);
+
+        imageRef.putFile(file)
+                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        // Get a URL to the uploaded content
+                        Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                        System.out.println("Download URL: " + downloadUrl);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(Exception exception) {
+                        // Handle unsuccessful uploads
+                        // ...
+                    }
+                });
     }
 
     private void saveCapturedImage(Bitmap finalBitmap) {
@@ -246,6 +280,7 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
         // Save a file: path for use with ACTION_VIEW intents
         //mCurrentPhotoPath = image.getAbsolutePath();
         capturedPhotoPath = image.getAbsolutePath();
+        capturedPhotoFilename = image.getName();
         return image;
     }
 
