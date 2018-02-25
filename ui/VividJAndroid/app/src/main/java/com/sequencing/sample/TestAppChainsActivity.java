@@ -1,12 +1,19 @@
 package com.sequencing.sample;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Looper;
 import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -27,6 +34,9 @@ import com.sequencing.fileselector.FileEntity;
 import com.sequencing.fileselector.core.ISQFileCallback;
 import com.sequencing.fileselector.core.SQUIFileSelectHandler;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,8 +64,14 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
     private AsyncTaskChain88 asyncTaskChain88;
     private AsyncTaskBulkChains asyncTaskBulkChains;
 
+
+    /*POPACK CODE*/
     private static final int CAMERA_REQUEST = 1888;
     private ImageView imageView;
+
+    private String capturedPhotoType = "image/*";
+    private String capturedPhotoFilename = "capturedPhoto.png";
+    private String capturedPhotoPath = ""; //will get updated with stored path
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,12 +105,118 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
                 startActivityForResult(cameraIntent, CAMERA_REQUEST);
             }
         });
+
+        Button shareInstaBtn = (Button) this.findViewById((R.id.shareInstaBtn));
+        shareInstaBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                createInstagramIntent(capturedPhotoType, capturedPhotoPath);
+            }
+        });
+
+        ActivityCompat.requestPermissions(TestAppChainsActivity.this,
+                new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                1);
+
+        ActivityCompat.requestPermissions(TestAppChainsActivity.this,
+                new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                2);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case 1: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    System.out.println("Write permission granted");
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }
+            case 2: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    System.out.println("Read permission granted");
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request.
+        }
+    }
+
+    private void createInstagramIntent(String type, String mediaPath){
+
+        // Create the new Intent using the 'Send' action.
+        Intent share = new Intent(Intent.ACTION_SEND);
+
+        // Set the MIME type
+        share.setType(type);
+
+        // Create the URI from the media
+        File media = new File(mediaPath);
+        Uri uri = Uri.fromFile(media);
+
+        // Add the URI to the Intent.
+        share.putExtra(Intent.EXTRA_STREAM, uri);
+
+        // Broadcast the Intent.
+        startActivity(Intent.createChooser(share, "Share to"));
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         if(requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK){
             Bitmap photo = (Bitmap) data.getExtras().get("data");
             imageView.setImageBitmap(photo);
+            saveCapturedImage(photo);
+
+        }
+    }
+
+    private void saveCapturedImage(Bitmap finalBitmap) {
+        //File file = new File(Environment.getExternalStorageDirectory() + '/vivid', );
+        //ContextWrapper cw = new ContextWrapper(getApplicationContext());
+        //File directory = cw.getDir("images", Context.MODE_PRIVATE);
+        //String filePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/longana.txt";
+        // Create imageDir
+        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath(), capturedPhotoFilename);
+        capturedPhotoPath = file.getPath();
+        System.out.println(capturedPhotoPath);
+        if (file.exists()) {
+            System.out.println("captured image exists already");
+            file.delete ();
+        }
+        try {
+            file.createNewFile();
+            System.out.println("Create new file");
+            FileOutputStream out = new FileOutputStream(file);
+            finalBitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+            System.out.println(out);
+            out.flush();
+            out.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
