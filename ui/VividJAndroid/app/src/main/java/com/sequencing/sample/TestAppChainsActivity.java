@@ -44,10 +44,22 @@ import com.sequencing.fileselector.FileEntity;
 import com.sequencing.fileselector.core.ISQFileCallback;
 import com.sequencing.fileselector.core.SQUIFileSelectHandler;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -80,6 +92,8 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
     /*POPACK CODE*/
     private static final int CAMERA_REQUEST = 1888;
     private ImageView imageView;
+    private Button takePicture;
+    private Button shareInstaBtn;
 
     private String capturedPhotoType = "image/*";
     private String capturedPhotoFilename = "capturedPhoto.png";
@@ -112,7 +126,7 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
         fileSelectHandler = new SQUIFileSelectHandler(this);
 
         imageView = (ImageView) this.findViewById(R.id.imageView);
-        Button takePicture = (Button) this.findViewById(R.id.takePictureBtn);
+        takePicture = (Button) this.findViewById(R.id.takePictureBtn);
 
         takePicture.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -123,7 +137,7 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
             }
         });
 
-        Button shareInstaBtn = (Button) this.findViewById((R.id.shareInstaBtn));
+        shareInstaBtn = (Button) this.findViewById((R.id.shareInstaBtn));
         shareInstaBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -223,6 +237,7 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         if(requestCode == REQUEST_TAKE_PHOTO && resultCode == Activity.RESULT_OK){
             System.out.println("photo taking successful");
+            shareInstaBtn.setVisibility(View.VISIBLE);
             BitmapFactory.Options bmOptions = new BitmapFactory.Options();
             Bitmap photo = BitmapFactory.decodeFile(capturedPhotoPath,bmOptions);
             photo = Bitmap.createScaledBitmap(photo, imageView.getWidth(),imageView.getHeight(),true);
@@ -247,6 +262,7 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
                         Uri downloadUrl = taskSnapshot.getDownloadUrl();
                         System.out.println("Download URL: " + downloadUrl);
                         capturedImageUrl = downloadUrl.toString();
+                        getPersonalityInfo();
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -341,12 +357,12 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
         selectedFileId = entity.getId();
 
         tvFileName.setText(entity.getFriendlyDesc1() + " - " + entity.getFriendlyDesc2());
-
-        btnVitaminD.setVisibility(View.VISIBLE);
-        btnMelanomaRisk.setVisibility(View.VISIBLE);
-        btnBulkChain.setVisibility(View.VISIBLE);
-        tvTitle.setVisibility(View.VISIBLE);
-        tvFileName.setVisibility(View.VISIBLE);
+        takePicture.setVisibility(View.VISIBLE);
+        //btnVitaminD.setVisibility(View.VISIBLE);
+        //btnMelanomaRisk.setVisibility(View.VISIBLE);
+        //btnBulkChain.setVisibility(View.VISIBLE);
+        //tvTitle.setVisibility(View.VISIBLE);
+        //tvFileName.setVisibility(View.VISIBLE);
     }
 
     @Override
@@ -382,6 +398,80 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
                 asyncTaskBulkChains.execute();
                 break;
         }
+    }
+
+    private void getPersonalityInfo(){
+        AndroidAppChainsImpl chains = new AndroidAppChainsImpl(OAuth2Parameters.getInstance().getOauth().getToken().getAccessToken(), "api.sequencing.com");
+        Report result = chains.getReport("StartApp", "Chain8005", entity.getId());
+
+        if (result.isSucceeded() == false)
+            System.out.println("Request has failed");
+        else
+            System.out.println("Request has succeeded");
+
+        ArrayList<String> characters = new ArrayList<>();
+        for (Result r : result.getResults()){
+            ResultType type = r.getValue().getType();
+            if (type == ResultType.TEXT) {
+                TextResultValue v = (TextResultValue) r.getValue();
+                if(v.getData().contains("1")) {
+                    characters.add(r.getName().replace("Personality", ""));
+                }
+            }
+        }
+        StringBuilder builder = new StringBuilder();
+
+        for (String string : characters) {
+            if (builder.length() > 0) {
+                builder.append(" ");
+            }
+            builder.append(string);
+        }
+
+        String string = builder.toString();
+
+        makePostRequest(string);
+
+        System.out.println("-------------------\n"+string+"\n-------------------\n");
+    }
+
+    private void makePostRequest(String personalities) {
+        HttpClient httpClient = new DefaultHttpClient();
+        // replace with your url
+        HttpPost httpPost = new HttpPost("http://b21aa001.ngrok.io/api/song");
+
+        //Post Data
+        List<NameValuePair> nameValuePair = new ArrayList<NameValuePair>(2);
+        nameValuePair.add(new BasicNameValuePair("url", capturedImageUrl));
+        nameValuePair.add(new BasicNameValuePair("traits", personalities));
+
+        //https://amp.businessinsider.com/images/59c5e32f25acc22d008b5314-750-375.jpg
+
+
+        //Encoding POST data
+        try {
+            httpPost.setEntity(new UrlEncodedFormEntity(nameValuePair));
+        } catch (UnsupportedEncodingException e) {
+            // log exception
+            e.printStackTrace();
+        }
+
+        //making POST request.
+        try {
+            HttpResponse response = httpClient.execute(httpPost);
+            String responseBody = EntityUtils.toString(response.getEntity());
+            Toast.makeText(TestAppChainsActivity.this, "Response: " + responseBody, Toast.LENGTH_LONG).show();
+            System.out.println("----------------------------" + responseBody + "----------------");
+            String[] ss=responseBody.split("\\s+");
+
+        } catch (ClientProtocolException e) {
+            // Log exception
+            e.printStackTrace();
+        } catch (IOException e) {
+            // Log exception
+            e.printStackTrace();
+        }
+
     }
 
     private boolean hasVitD() {

@@ -91,11 +91,13 @@
         android:id="@+id/takePictureBtn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:visibility="gone"
         android:text="Take Picture" />
 
     <Button
         android:id="@+id/shareInstaBtn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:visibility="gone"
         android:text="Share to Instagram" />
 </LinearLayout>
