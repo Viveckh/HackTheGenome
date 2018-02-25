@@ -41,6 +41,7 @@ dependencies {
     compile 'com.sequencing:master-plugin:1.0.32'
     compile 'com.google.firebase:firebase-core:11.8.0'
     compile 'com.google.firebase:firebase-storage:11.8.0'
+    compile 'com.google.firebase:firebase-auth:11.8.0'
     compile 'com.android.support:multidex:1.0.0'
 //    compile 'com.sequencing:appchains:1.0.9'
 //    compile 'com.sequencing:android-oauth:1.0.22'

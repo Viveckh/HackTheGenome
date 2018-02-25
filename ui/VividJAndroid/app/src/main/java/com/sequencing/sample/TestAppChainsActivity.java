@@ -27,6 +27,8 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -82,8 +84,10 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
     private String capturedPhotoType = "image/*";
     private String capturedPhotoFilename = "capturedPhoto.png";
     private String capturedPhotoPath = ""; //will get updated with stored path
+    private String capturedImageUrl = "";
 
     private StorageReference mStorageRef;
+    private FirebaseAuth mAuth;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -136,6 +140,23 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
                 2);
 
         mStorageRef = FirebaseStorage.getInstance().getReference();
+        mAuth = FirebaseAuth.getInstance();
+        signInAnonymously();
+    }
+
+    private void signInAnonymously() {
+        mAuth.signInAnonymously().addOnSuccessListener(this, new  OnSuccessListener<AuthResult>() {
+            @Override
+            public void onSuccess(AuthResult authResult) {
+                // do your stuff
+            }
+        })
+                .addOnFailureListener(this, new OnFailureListener() {
+                    @Override
+                    public void onFailure(Exception exception) {
+                        Log.e(TAG, "signInAnonymously:FAILURE", exception);
+                    }
+                });
     }
 
     @Override
@@ -225,6 +246,7 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
                         // Get a URL to the uploaded content
                         Uri downloadUrl = taskSnapshot.getDownloadUrl();
                         System.out.println("Download URL: " + downloadUrl);
+                        capturedImageUrl = downloadUrl.toString();
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
