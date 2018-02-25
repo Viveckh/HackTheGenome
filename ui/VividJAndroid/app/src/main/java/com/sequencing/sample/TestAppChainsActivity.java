@@ -53,8 +53,10 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.w3c.dom.Text;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -77,6 +79,15 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
     private Button btnVitaminD;
     private Button btnMelanomaRisk;
     private Button btnBulkChain;
+    private Button btnUploadGallery;
+    private Button btnBookCaption;
+    private Button btnSongCaption;
+
+    private TextView captionView;
+    private TextView captionLabel;
+    private TextView photoLabel;
+    private TextView captionOptionLabel;
+
     private TextView tvTitle;
     private TextView tvFileName;
     private TextView tvResult;
@@ -99,6 +110,8 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
     private String capturedPhotoFilename = "capturedPhoto.png";
     private String capturedPhotoPath = ""; //will get updated with stored path
     private String capturedImageUrl = "";
+
+    public static final int GET_FROM_GALLERY = 3;
 
     private StorageReference mStorageRef;
     private FirebaseAuth mAuth;
@@ -137,6 +150,14 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
             }
         });
 
+        btnUploadGallery = (Button) this.findViewById(R.id.upload_gallery);
+        btnUploadGallery.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                uploadFromGallery(view);
+            }
+        });
+
         shareInstaBtn = (Button) this.findViewById((R.id.shareInstaBtn));
         shareInstaBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -144,6 +165,27 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
                 createInstagramIntent(capturedPhotoType, capturedPhotoPath);
             }
         });
+
+        btnBookCaption = (Button) this.findViewById(R.id.book_caption);
+        btnBookCaption.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getPersonalityInfo("book");
+            }
+        });
+
+        btnSongCaption = (Button) this.findViewById(R.id.song_caption);
+        btnSongCaption.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getPersonalityInfo("song");
+            }
+        });
+
+        captionView = (TextView) this.findViewById(R.id.main_caption);
+        captionLabel= (TextView) this.findViewById(R.id.caption_label);
+        photoLabel = (TextView) this.findViewById(R.id.photo_label);
+        captionOptionLabel = (TextView) this.findViewById(R.id.caption_option);
 
         ActivityCompat.requestPermissions(TestAppChainsActivity.this,
                 new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
@@ -156,6 +198,11 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
         mStorageRef = FirebaseStorage.getInstance().getReference();
         mAuth = FirebaseAuth.getInstance();
         signInAnonymously();
+    }
+
+
+    public void uploadFromGallery(View view){
+        startActivityForResult(new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.INTERNAL_CONTENT_URI), GET_FROM_GALLERY);
     }
 
     private void signInAnonymously() {
@@ -247,9 +294,38 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
             //saveCapturedImage(photo);
 
         }
+
+        //Detects request codes
+        else if(requestCode==GET_FROM_GALLERY && resultCode == Activity.RESULT_OK) {
+            Uri selectedImage = data.getData();
+            System.out.println("URI" + selectedImage);
+            shareInstaBtn.setVisibility(View.VISIBLE);
+            Bitmap bitmap = null;
+            try {
+                bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
+                bitmap = Bitmap.createScaledBitmap(bitmap, imageView.getWidth(),imageView.getHeight(),true);
+                //Bitmap photo = (Bitmap) data.getExtras().get("data");
+                imageView.setImageBitmap(bitmap);
+                capturedPhotoPath = ImageFilePath.getPath(TestAppChainsActivity.this, selectedImage);
+                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                String imageFileName = "JPEG_" + timeStamp + "_";
+                capturedPhotoFilename = imageFileName;
+                uploadImage();
+            } catch (FileNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+
     }
 
     private void uploadImage() {
+
+        captionLabel.setVisibility(View.VISIBLE);
+        captionView.setVisibility(View.VISIBLE);
 
         Uri file = Uri.fromFile(new File(capturedPhotoPath));
         StorageReference imageRef = mStorageRef.child("images/" + capturedPhotoFilename);
@@ -262,7 +338,10 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
                         Uri downloadUrl = taskSnapshot.getDownloadUrl();
                         System.out.println("Download URL: " + downloadUrl);
                         capturedImageUrl = downloadUrl.toString();
-                        getPersonalityInfo();
+                        getPersonalityInfo("song");
+                        btnBookCaption.setVisibility(View.VISIBLE);
+                        btnSongCaption.setVisibility(View.VISIBLE);
+                        captionOptionLabel.setVisibility(View.VISIBLE);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -358,6 +437,10 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
 
         tvFileName.setText(entity.getFriendlyDesc1() + " - " + entity.getFriendlyDesc2());
         takePicture.setVisibility(View.VISIBLE);
+        btnUploadGallery.setVisibility(View.VISIBLE);
+        photoLabel.setVisibility(View.VISIBLE);
+
+
         //btnVitaminD.setVisibility(View.VISIBLE);
         //btnMelanomaRisk.setVisibility(View.VISIBLE);
         //btnBulkChain.setVisibility(View.VISIBLE);
@@ -400,7 +483,7 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
         }
     }
 
-    private void getPersonalityInfo(){
+    private void getPersonalityInfo(String route){
         AndroidAppChainsImpl chains = new AndroidAppChainsImpl(OAuth2Parameters.getInstance().getOauth().getToken().getAccessToken(), "api.sequencing.com");
         Report result = chains.getReport("StartApp", "Chain8005", entity.getId());
 
@@ -430,15 +513,15 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
 
         String string = builder.toString();
 
-        makePostRequest(string);
+        makePostRequest(string, route);
 
         System.out.println("-------------------\n"+string+"\n-------------------\n");
     }
 
-    private void makePostRequest(String personalities) {
+    private void makePostRequest(String personalities, String route) {
         HttpClient httpClient = new DefaultHttpClient();
         // replace with your url
-        HttpPost httpPost = new HttpPost("http://b21aa001.ngrok.io/api/song");
+        HttpPost httpPost = new HttpPost("http://627f4dbd.ngrok.io/api/"+route);
 
         //Post Data
         List<NameValuePair> nameValuePair = new ArrayList<NameValuePair>(2);
@@ -460,7 +543,12 @@ public class TestAppChainsActivity extends AppCompatActivity implements ISQFileC
         try {
             HttpResponse response = httpClient.execute(httpPost);
             String responseBody = EntityUtils.toString(response.getEntity());
-            Toast.makeText(TestAppChainsActivity.this, "Response: " + responseBody, Toast.LENGTH_LONG).show();
+//            Toast.makeText(TestAppChainsActivity.this, "Response: " + responseBody, Toast.LENGTH_LONG).show();
+
+            if (responseBody != null){
+                captionView.setText(responseBody);
+            }
+
             System.out.println("----------------------------" + responseBody + "----------------");
             String[] ss=responseBody.split("\\s+");
 

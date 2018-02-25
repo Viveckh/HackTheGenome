@@ -4,100 +4,178 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context=".TestAppChainsActivity"
-    android:gravity="center_horizontal"
-    android:orientation="vertical">
+    tools:context=".TestAppChainsActivity">
 
     <Button
         android:id="@+id/btnSelectFile"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Select genetic file"/>
+        android:text="Select genetic file" />
 
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Selected genetic file:"
-        android:textStyle="bold"
+        android:layout_marginTop="10dp"
         android:gravity="center"
-        android:visibility="gone"
-        android:layout_marginTop="10dp" />
+        android:text="Selected genetic file:"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textStyle="bold"
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/tvFileName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:layout_marginTop="10dp"
         android:gravity="center"
-        android:visibility="gone"
-        android:layout_marginTop="10dp" />
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:visibility="gone" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:layout_marginTop="20dp"
         android:gravity="center"
-        android:layout_marginTop="20dp">
+        android:orientation="horizontal">
 
         <Button
             android:id="@+id/btnVitaminD"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="12dp"
-            android:visibility="gone"
+            android:text="Vitamin D "
             android:textAllCaps="false"
-            android:text="Vitamin D "/>
+            android:textSize="12dp"
+            android:visibility="gone" />
 
         <Button
             android:id="@+id/btnMelanomaRisk"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="12dp"
+            android:text="Melanoma risk"
             android:textAllCaps="false"
-            android:visibility="gone"
-            android:text="Melanoma risk"/>
+            android:textSize="12dp"
+            android:visibility="gone" />
 
         <Button
             android:id="@+id/btnGetVitaminDMelanomaRisk"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="12dp"
+            android:text="Vitamin D &amp; \n Melanoma risk "
             android:textAllCaps="false"
-            android:visibility="gone"
-            android:text="Vitamin D &amp; \n Melanoma risk "/>
+            android:textSize="12dp"
+            android:visibility="gone" />
     </LinearLayout>
 
     <TextView
         android:id="@+id/tvResult"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:visibility="gone"
-        android:layout_marginTop="10dp" />
+        android:visibility="gone" />
 
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="200dp"
+        android:layout_width="173dp"
         android:layout_height="200dp"
         app:srcCompat="@color/colorBorderButton" />
 
-    <Button
-        android:id="@+id/takePictureBtn"
+
+    <TextView
+        android:id="@+id/photo_label"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:text="Take Picture" />
+        android:text="Choose a photo"
+        android:visibility="gone"/>
+
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/takePictureBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Camera"
+            android:layout_weight="1"
+            android:visibility="gone" />
+
+
+        <Button
+            android:id="@+id/upload_gallery"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Gallery"
+            android:layout_weight="1"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+
+    <TextView
+        android:id="@+id/caption_option"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Options"
+        android:visibility="gone"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/book_caption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Book Caption"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/song_caption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Song Caption"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/caption_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Caption"
+        android:visibility="gone"/>
+
+    <TextView
+        android:id="@+id/main_caption"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Generating caption..."
+        android:visibility="gone"/>
 
     <Button
         android:id="@+id/shareInstaBtn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:text="Share to Instagram" />
+        android:text="Share to Instagram"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"></LinearLayout>
+
+
 </LinearLayout>
